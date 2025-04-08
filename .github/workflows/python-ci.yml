@@ -1,65 +1,46 @@
-name: Python CI Pipeline
+name: Python CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout code
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - name: Checkout GitHub repository
+      uses: actions/checkout@v3
 
-    # Step 2: Set up Python environment
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+    - name: Clone GitLab Repository
+      run: |
+        git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/andrewkim0430/dev-team-ci-cd.git gitlab-repo
+        cd gitlab-repo
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
         python-version: '3.11'
 
-    # Step 3: Install dependencies
     - name: Install dependencies
       run: |
-        echo "Installing dependencies..."
+        cd gitlab-repo
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install -r requirements.txt
 
-    # Step 4: Build the project
-    - name: Build the project
-      run: |
-        echo "Building the project..."
-        if [ -f setup.py ]; then python setup.py build; else echo "No setup.py found, skipping build step."; fi
-
-    # Step 5: Lint the code
     - name: Run lint checks
       run: |
-        echo "Running lint checks..."
-        pip install flake8
-        flake8 . || echo "Linting errors found."
+        cd gitlab-repo
+        pylint **/*.py || true
 
-    # Step 6: Run tests
     - name: Run tests
       run: |
-        echo "Running tests..."
-        pip install pytest
-        pytest || echo "No tests found or some tests failed."
+        cd gitlab-repo
+        pytest
 
-    # Step 7: Package the project
     - name: Package the project
       run: |
-        echo "Packaging the project..."
-        mkdir -p dist
-        zip -r dist/project.zip . -x "*.git*" "dist/*" "*.venv/*"
-
-    # Step 8: Upload the package as artifact
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: project-package
-        path: dist/project.zip
+        cd gitlab-repo
+        zip -r project.zip .
