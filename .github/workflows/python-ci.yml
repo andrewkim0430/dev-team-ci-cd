@@ -17,7 +17,7 @@ jobs:
 
       - name: Clone GitLab Repository
         run: |
-          git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab-acit4850-w2025-group19.canadacentral.cloudapp.azure.com/.git gitlab-repo
+          git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab-acit4850-w2025-group19.canadacentral.cloudapp.azure.com/group2/point.git gitlab-repo
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -52,4 +52,3 @@ jobs:
         with:
           name: python-project
           path: gitlab-repo/project.zip
-
