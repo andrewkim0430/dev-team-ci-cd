@@ -1,54 +1,54 @@
-name: CI Pipeline - Point Project
+name: Python CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  point-pipeline:
-    name: Point Python Pipeline
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the mirrored GitLab repo code
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Setup Python 3.11
-      - name: Setup Python
+      - name: Clone GitLab Repository
+        run: |
+          git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab-acit4850-w2025-group19.canadacentral.cloudapp.azure.com/group2/point.git gitlab-repo
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # Step 3: Install dependencies
-      - name: Install requirements
+      - name: Install dependencies
         run: |
+          cd gitlab-repo
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements.txt
+          pip install flake8 pytest
 
-      # Step 4: Lint with pylint
-      - name: Run Lint
+      - name: Lint with flake8
         run: |
-          pip install pylint
-          pylint *.py || true
+          cd gitlab-repo
+          flake8 . --exit-zero
 
-      # Step 5: Run Unit Tests
-      - name: Run Tests
+      - name: Run tests with pytest
         run: |
-          pip install pytest
-          pytest || echo "Some tests failed or no tests found."
+          cd gitlab-repo
+          pytest || true
 
-      # Step 6: Zip Python Files
-      - name: Zip Python Files
+      - name: Package the project
         run: |
-          mkdir -p dist
-          zip -r dist/point-pipeline-${{ github.run_number }}.zip . -x "*.git*" "venv/*" "__pycache__/*"
+          cd gitlab-repo
+          zip -r project.zip .
 
-      # Step 7: Upload Artifact
-      - name: Upload ZIP Artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: point-pipeline-artifact
-          path: dist/point-pipeline-${{ github.run_number }}.zip
+          name: python-project
+          path: gitlab-repo/project.zip
