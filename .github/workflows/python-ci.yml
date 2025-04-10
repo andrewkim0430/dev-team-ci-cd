@@ -13,40 +13,49 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout GitHub repository (required by GitHub Actions)
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Clone your GitLab repository using secure token
       - name: Clone GitLab Repository
         run: |
           git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab-acit4850-w2025-group19.canadacentral.cloudapp.azure.com/group2/point.git gitlab-repo
 
+      # Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
+      # Install dependencies
       - name: Install dependencies
         run: |
           cd gitlab-repo
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 pytest
+          pip install flake8 pytest coverage
 
+      # Lint with flake8
       - name: Lint with flake8
         run: |
           cd gitlab-repo
           flake8 . --exit-zero
 
-      - name: Run tests with pytest
+      # Test with pytest and generate coverage report
+      - name: Test with pytest and Coverage
         run: |
           cd gitlab-repo
-          pytest || true
+          coverage run -m pytest
+          coverage report
 
+      # Package the project
       - name: Package the project
         run: |
           cd gitlab-repo
           zip -r project.zip .
 
+      # Upload the zipped artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
